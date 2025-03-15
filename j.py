@@ -48,7 +48,7 @@ def get_random_proxy():
     """إرجاع بروكسي عشوائي."""
     return random.choice(PROXIES) if PROXIES else None
 
-def send_requests_threaded(target, num_threads=1000):
+def send_requests_threaded(target, num_threads=20000):
     session = requests.Session()
     
     def send_request():
